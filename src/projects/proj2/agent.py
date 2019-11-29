@@ -48,18 +48,24 @@ class MinimaxAgent(RandomAgent):
         time_start = 0
         time_finish = 0
         if not self.alpha_beta_pruning:
+            file = open("soccer.txt", "a+")
             time_start = time.time()
             a = self.minimax(state,state.current_player)
             time_finish = time.time() - time_start
+            file.write("{},\n".format(time_finish))
             print("time taken to decide",time_finish)
             print('\n')
+            file.close()
             return a
         else:
+            file = open("ab_soccer.txt","a+")
             time_start = time.time()
             a = self.minimax_with_ab_pruning(state,state.current_player)
             time_finish = time.time() - time_start
+            file.write("{},\n".format(time_finish))
             print("time taken to decide",time_finish)
             print('\n')
+            file.close()
             return a
         
         
@@ -156,7 +162,7 @@ class MinimaxAgent(RandomAgent):
                 for action in state.actions:
                     #print("action", action)
                     if(state.act(action) != None):
-                        val = self.minimax_with_ab_pruning(state.act(action),player,new_depth,alpha,beta)[0]
+                        val, alp, bet = self.minimax_with_ab_pruning(state.act(action),player,new_depth,alpha,beta)
                         a = min(v, val)
                         v = a if a != math.inf else v
                         x = val,action
@@ -166,11 +172,16 @@ class MinimaxAgent(RandomAgent):
                         #if(beta != -math.inf):
                         if(val <= beta):
                             beta = val
+                            print("val:",val)
+                            #prune the tree by hopping out of the for loop
                             break
                         #if val is bigger then beta then we must keep searching
                 if(depth == 2):
-                    beta = min(l)[0]
-                
+                    try:
+                        beta = max(l)[0]
+                        #print("beta:",beta)
+                    except(TypeError):
+                        beta = l[0][0]
                 
                 if(v != math.inf):
                     return v , alpha, beta
@@ -187,7 +198,10 @@ class MinimaxAgent(RandomAgent):
                 new_depth = depth + 1
                 for action in state.actions:
                     if(state.act(action) != None):
-                        val = self.minimax_with_ab_pruning(state.act(action),player,new_depth,alpha,beta)[0]
+                        #alp, bet are alpha beta values from depth 2
+                        val, alp, bet = self.minimax_with_ab_pruning(state.act(action),player,new_depth,alpha,beta)
+                        beta = bet if bet <= beta or beta == -math.inf else beta
+                        #print("alp: {} bet: {} alpha: {} beta: {}".format(alp,bet,alpha,beta))
                         a = max(v, val)
                         v = a if a != math.inf else v
                         x = val,action
@@ -195,12 +209,14 @@ class MinimaxAgent(RandomAgent):
                         #ab breakouts will happen here
                         ##############################
                         #if (alpha != math.inf):
-                        if(val >= alpha):
-                            alpha = val
-                            break
-                    if(depth == 1):
+                        
+                if(depth == 1):
+                    try:
                         alpha = max(l)[0]
-                
+                        print("alpha:",alpha)
+                    except(TypeError):
+                        print("ERROROROROROR")
+                        alpha = l[0][0]
                 
                 
                 

@@ -56,7 +56,7 @@ def soccer(state, player_id):
     
     #if opponent scored goal
     if ((o_team.name == 'red' and state.ball_in_red_goal) or (o_team.name == 'blue' and state.ball_in_blue_goal)):
-        print(o_team)
+        #print(o_team)
         return -10
     #########################################
     
@@ -64,7 +64,7 @@ def soccer(state, player_id):
     #if has ball and opponent is between goal and player +4
     if(p_has_ball):
         if (state.check_kick(state.players[player_id])[2]):
-            print("yay goal")
+            #print("yay goal")
             return 10
         if (o_pgoal_dist < p_pgoal_dist):
             if(p_pos[0] <= 10 if p_team.name == 'blue' else p_pos[0] >= 10):
