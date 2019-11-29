@@ -37,35 +37,64 @@ def soccer(state, player_id):
     #distances to ball
     pb_dist = math.sqrt((p_pos[0]-b_pos[0])**2+(p_pos[1]-b_pos[1])**2)
     ob_dist = math.sqrt((o_pos[0]-b_pos[0])**2+(o_pos[1]-b_pos[1])**2)
+    #distances to players
+    po_dist = math.sqrt((p_pos[0]-o_pos[0])**2+(p_pos[1]-o_pos[1])**2)
+    po_Xdist = p_pos[0]-o_pos[0]
+    po_Ydist = p_pos[0]-o_pos[0]
+    print("po_Xdist:",po_Xdist)
+    print("po_Ydist:",po_Ydist)
     
-    
-    #if has ball and opponent is between goal and player +4
-    if (p_has_ball and (o_pgoal_dist < p_pgoal_dist)):
-        return 4 - translate(p_pgoal_dist,0,100,0,0)
-    #if has ball and opponent is behind player +7
-    elif (p_has_ball and (o_pgoal_dist >= p_pgoal_dist)):
-        return 7 - translate(p_pgoal_dist,0,100,0,0)
+    #########################################
     #if player scored goal
     if ((p_team.name == 'red' and state.ball_in_red_goal) or (p_team.name == 'blue' and state.ball_in_blue_goal)):
         return 10
+    
     #if opponent scored goal
     if ((o_team.name == 'red' and state.ball_in_red_goal) or (o_team.name == 'blue' and state.ball_in_blue_goal)):
         return -10
+    #########################################
+    
+    #########################################
+    #if has ball and opponent is between goal and player +4
+    if (p_has_ball and (o_pgoal_dist < p_pgoal_dist)):
+        return 4 - translate(p_pgoal_dist) + translate(po_dist)
+    
+    #if has ball and opponent is behind player +7
+    elif (p_has_ball and (o_pgoal_dist >= p_pgoal_dist)):
+        return 7 - translate(p_pgoal_dist) + translate(po_dist)
+    #########################################
+    
+    #########################################
     #if opponent has ball and player is between goal and opponent
     if (o_has_ball and (p_ogoal_dist < o_ogoal_dist)):
-        return -4 - translate(o_ogoal_dist,0,100,0,0)
+        if(p_pos[1] < state.goal_top and p_pos[1] > state.goal_bottom):
+                if(p_pos[0] < state.blue_goal_pos[0] + 6 if p_team.name == 'blue' else state.red_goal_pos[0] - 6 and p_pos[0] > 0):  
+                    if(state.can_shoot_from(o_pos[0],o_pos[1],o_team)):
+                        return -3 - translate(po_dist)
+                    else:
+                        return -5 - translate(po_dist)
+        return -4 - translate(po_dist) - translate(p_ogoal_dist + 2) 
+    
     #if opponent has ball and player is behind opponent
     if (o_has_ball and (p_ogoal_dist >= o_ogoal_dist)):
-        return -7 - translate(o_ogoal_dist,0,100,0,0)
+        return -7 - translate(p_ogoal_dist) #- translate(po_dist)
+    #########################################
+    
+    
+    
+    #########################################
     #if doesnt have ball and opponent doesnt have ball, but is closer 
     if (not p_has_ball and not o_has_ball and (pb_dist > ob_dist)):
-        return -1 + translate(pb_dist,0,100,0,0)
+        return 1 - translate(pb_dist) 
+    
     #if doesnt have ball and opponent doesnt have ball, but is further 
     if (not p_has_ball and not o_has_ball and (pb_dist < ob_dist)):
-        return 1 + translate(pb_dist,0,100,0,0)
+        return -1 - translate(pb_dist)
+    
     #if doesnt have ball and opponent doesnt have ball
     if (not p_has_ball and not o_has_ball):
-        return 0
+        return 0 
+    #########################################
     
     if not isinstance(state, discrete_soccer.SoccerState):
         raise ValueError("Evaluation function incompatible with game type.")
@@ -77,7 +106,7 @@ def connect_four(state, player_id):
     return 0
 
 
-def translate(value, leftMin, leftMax, rightMin, rightMax):
+def translate(value, leftMin = 0, leftMax = 100, rightMin = 0, rightMax = 0):
     # Figure out how 'wide' each range is
     leftSpan = leftMax - leftMin
     #rightSpan = rightMax - rightMin

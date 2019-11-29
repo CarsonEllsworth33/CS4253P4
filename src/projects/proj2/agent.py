@@ -43,15 +43,22 @@ class MinimaxAgent(RandomAgent):
         #
         # If you would like to see some example agents, check out
         # `/src/lib/game/_agents.py`.
-        print("\n\n\n")
-        a = self.minimax(state,state.current_player,state.current_player)
-        print("minimax act:",a)
-        print("\n\n\n")
-        return a
+        import time
+        
+        time_start = 0
+        time_finish = 0
         if not self.alpha_beta_pruning:
-            return super().decide(state)
+            time_start = time.time()
+            a = self.minimax(state,state.current_player,state.current_player)
+            time_finish = time.time() - time_start
+            print("time taken to decide",time_finish)
+            return a
         else:
-            return self.minimax_with_ab_pruning(state, state.current_player)
+            time_start = time.time()
+            a = self.minimax_with_ab_pruning(state,state.current_player,state.current_player)
+            time_finish = time.time() - time_start
+            print("time taken to decide",time_finish)
+            return a
 ###### Problem is that if every option is giving the same value it will just choose a random action
 ###### I need eval to give more proper value depending on dist to ball
     def minimax(self, state, player, p_id,depth=1):
@@ -63,12 +70,14 @@ class MinimaxAgent(RandomAgent):
         min_man = False if p_id == player else True
         o_pid = 0 if player == 1 else 1
         
+        '''
         print("\n")
         print("player:",player)
         print("o_pid:",o_pid)
         print("minman:", min_man)
         print("depth:",depth)
         print("\n")
+        '''
         
         if depth >= 3 or state.is_terminal:
             print("terminal condition reached")
@@ -137,7 +146,72 @@ class MinimaxAgent(RandomAgent):
 
     def minimax_with_ab_pruning(self, state, player, depth=1,
                                 alpha=float('inf'), beta=-float('inf')):
-        return super().decide(state)
+        min_man = False if p_id == player else True
+        o_pid = 0 if player == 1 else 1
+        
+        if depth >= 3 or state.is_terminal:
+            print("terminal condition reached")
+            v = self.evaluate(state,player)
+            print("eval:",v)
+            return v
+        
+        
+        #depth <= 2
+        if min_man:
+            v = math.inf
+            l = []
+            #for action in action_states:
+            try:
+                new_depth = depth + 1
+                for action in state.actions:
+                    #print("action", action)
+                    if(state.act(action) != None):
+                        val = self.minimax(state.act(action),p_id,p_id,new_depth)
+                        a = min(v, val)
+                        v = a if a != math.inf else v
+                        x = val,action
+                        l.append(x)
+                
+                
+                #print("min:{} depth:{}".format(v,depth))
+                #if depth == 1:
+                #    return min(l)[1]
+                #else:
+                #    return v
+                if(v != math.inf):
+                    return v
+                
+            except(AttributeError):
+                pass
+        
+        else:
+            v = -math.inf
+            l = []
+            #for action in action_states:
+            try:
+                new_depth = depth + 1
+                for action in state.actions:
+                    if(depth==1):
+                        print("action", action)
+                    if(state.act(action) != None):
+                        val = self.minimax(state.act(action),p_id,p_id,new_depth)
+                        a = max(v, val)
+                        v = a if a != math.inf else v
+                        x = val,action
+                        l.append(x)
+                    
+                
+                if(v != math.inf):
+                    
+                    print("max:{} depth:{}".format(v,depth))
+                    if depth == 1:
+                        print("action eval list:",l)
+                        return max(l)[1]
+                    else:
+                        return v
+                    print("max:",v)
+            except(AttributeError):
+                pass   
 
 
 
