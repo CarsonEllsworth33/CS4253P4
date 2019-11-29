@@ -49,41 +49,35 @@ class MinimaxAgent(RandomAgent):
         time_finish = 0
         if not self.alpha_beta_pruning:
             time_start = time.time()
-            a = self.minimax(state,state.current_player,state.current_player)
+            a = self.minimax(state,state.current_player)
             time_finish = time.time() - time_start
             print("time taken to decide",time_finish)
+            print('\n')
             return a
         else:
             time_start = time.time()
-            a = self.minimax_with_ab_pruning(state,state.current_player,state.current_player)
+            a = self.minimax_with_ab_pruning(state,state.current_player)
             time_finish = time.time() - time_start
             print("time taken to decide",time_finish)
+            print('\n')
             return a
-###### Problem is that if every option is giving the same value it will just choose a random action
-###### I need eval to give more proper value depending on dist to ball
-    def minimax(self, state, player, p_id,depth=1):
+        
+        
+        
+    def minimax(self, state, player,depth=1):
         # This is the suggested method you use to do minimax.  Assume
         # `state` is the current state, `player` is the player that
         # the agent is representing (NOT the current player in
         # `state`!)  and `depth` is the current depth of recursion.        
         
-        min_man = False if p_id == player else True
-        o_pid = 0 if player == 1 else 1
+        min_man = False if state.current_player == player else True
         
-        '''
-        print("\n")
-        print("player:",player)
-        print("o_pid:",o_pid)
-        print("minman:", min_man)
-        print("depth:",depth)
-        print("\n")
-        '''
+        
+       
         
         if depth >= 3 or state.is_terminal:
-            print("terminal condition reached")
             v = self.evaluate(state,player)
-            print("eval:",v)
-            return v
+            return v 
         
         
         #depth <= 2
@@ -96,18 +90,12 @@ class MinimaxAgent(RandomAgent):
                 for action in state.actions:
                     #print("action", action)
                     if(state.act(action) != None):
-                        val = self.minimax(state.act(action),p_id,p_id,new_depth)
+                        val = self.minimax(state.act(action),player,new_depth)
                         a = min(v, val)
                         v = a if a != math.inf else v
                         x = val,action
                         l.append(x)
                 
-                
-                #print("min:{} depth:{}".format(v,depth))
-                #if depth == 1:
-                #    return min(l)[1]
-                #else:
-                #    return v
                 if(v != math.inf):
                     return v
                 
@@ -121,10 +109,8 @@ class MinimaxAgent(RandomAgent):
             try:
                 new_depth = depth + 1
                 for action in state.actions:
-                    if(depth==1):
-                        print("action", action)
                     if(state.act(action) != None):
-                        val = self.minimax(state.act(action),p_id,p_id,new_depth)
+                        val = self.minimax(state.act(action),player,new_depth)
                         a = max(v, val)
                         v = a if a != math.inf else v
                         x = val,action
@@ -132,28 +118,32 @@ class MinimaxAgent(RandomAgent):
                     
                 
                 if(v != math.inf):
-                    
-                    print("max:{} depth:{}".format(v,depth))
                     if depth == 1:
-                        print("action eval list:",l)
-                        return max(l)[1]
+                        try:
+                            return max(l)[1]
+                        except(TypeError):
+                            return l[0][1]
                     else:
                         return v
-                    print("max:",v)
             except(AttributeError):
                 pass   
             
 
     def minimax_with_ab_pruning(self, state, player, depth=1,
                                 alpha=float('inf'), beta=-float('inf')):
-        min_man = False if p_id == player else True
-        o_pid = 0 if player == 1 else 1
+         # This is the suggested method you use to do minimax.  Assume
+        # `state` is the current state, `player` is the player that
+        # the agent is representing (NOT the current player in
+        # `state`!)  and `depth` is the current depth of recursion.        
+        
+        min_man = False if state.current_player == player else True
+        
+        
+       
         
         if depth >= 3 or state.is_terminal:
-            print("terminal condition reached")
             v = self.evaluate(state,player)
-            print("eval:",v)
-            return v
+            return v, alpha, beta
         
         
         #depth <= 2
@@ -166,24 +156,29 @@ class MinimaxAgent(RandomAgent):
                 for action in state.actions:
                     #print("action", action)
                     if(state.act(action) != None):
-                        val = self.minimax(state.act(action),p_id,p_id,new_depth)
+                        val = self.minimax_with_ab_pruning(state.act(action),player,new_depth,alpha,beta)[0]
                         a = min(v, val)
                         v = a if a != math.inf else v
                         x = val,action
                         l.append(x)
+                        #ab breakouts will happen here
+                        ##############################
+                        #if(beta != -math.inf):
+                        if(val <= beta):
+                            beta = val
+                            break
+                        #if val is bigger then beta then we must keep searching
+                if(depth == 2):
+                    beta = min(l)[0]
                 
                 
-                #print("min:{} depth:{}".format(v,depth))
-                #if depth == 1:
-                #    return min(l)[1]
-                #else:
-                #    return v
                 if(v != math.inf):
-                    return v
+                    return v , alpha, beta
                 
             except(AttributeError):
                 pass
         
+        #depth = 1(root)
         else:
             v = -math.inf
             l = []
@@ -191,34 +186,34 @@ class MinimaxAgent(RandomAgent):
             try:
                 new_depth = depth + 1
                 for action in state.actions:
-                    if(depth==1):
-                        print("action", action)
                     if(state.act(action) != None):
-                        val = self.minimax(state.act(action),p_id,p_id,new_depth)
+                        val = self.minimax_with_ab_pruning(state.act(action),player,new_depth,alpha,beta)[0]
                         a = max(v, val)
                         v = a if a != math.inf else v
                         x = val,action
                         l.append(x)
-                    
+                        #ab breakouts will happen here
+                        ##############################
+                        #if (alpha != math.inf):
+                        if(val >= alpha):
+                            alpha = val
+                            break
+                    if(depth == 1):
+                        alpha = max(l)[0]
+                
+                
+                
                 
                 if(v != math.inf):
-                    
-                    print("max:{} depth:{}".format(v,depth))
                     if depth == 1:
-                        print("action eval list:",l)
-                        return max(l)[1]
+                        try:
+                            return max(l)[1]
+                        except(TypeError):
+                            return l[0][1]
                     else:
-                        return v
-                    print("max:",v)
+                        return v , alpha, beta
             except(AttributeError):
-                pass   
-
-
-
-
-
-
-
+                pass
 
 
 

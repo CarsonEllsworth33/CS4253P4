@@ -24,6 +24,7 @@ def soccer(state, player_id):
     #team names
     p_team = state.players[player_id]['team']
     o_team = state.players[player_id]['team'].inverse
+    
     #positions
     p_pos = (state.players[player_id]['x'],state.players[player_id]['y'])
     o_pos = (state.players[opponent_id]['x'],state.players[opponent_id]['y'])
@@ -41,9 +42,13 @@ def soccer(state, player_id):
     po_dist = math.sqrt((p_pos[0]-o_pos[0])**2+(p_pos[1]-o_pos[1])**2)
     po_Xdist = p_pos[0]-o_pos[0]
     po_Ydist = p_pos[0]-o_pos[0]
-    print("po_Xdist:",po_Xdist)
-    print("po_Ydist:",po_Ydist)
+    #print("po_Xdist:",po_Xdist)
+    #print("po_Ydist:",po_Ydist)
     
+    
+    #is_goal = state.check_kick(state.players[player_id])[2]
+    #if(is_goal and p_has_ball):
+    #    return 10
     #########################################
     #if player scored goal
     if ((p_team.name == 'red' and state.ball_in_red_goal) or (p_team.name == 'blue' and state.ball_in_blue_goal)):
@@ -51,48 +56,59 @@ def soccer(state, player_id):
     
     #if opponent scored goal
     if ((o_team.name == 'red' and state.ball_in_red_goal) or (o_team.name == 'blue' and state.ball_in_blue_goal)):
+        print(o_team)
         return -10
     #########################################
     
     #########################################
     #if has ball and opponent is between goal and player +4
-    if (p_has_ball and (o_pgoal_dist < p_pgoal_dist)):
-        return 4 - translate(p_pgoal_dist) + translate(po_dist)
-    
-    #if has ball and opponent is behind player +7
-    elif (p_has_ball and (o_pgoal_dist >= p_pgoal_dist)):
-        return 7 - translate(p_pgoal_dist) + translate(po_dist)
+    if(p_has_ball):
+        if (state.check_kick(state.players[player_id])[2]):
+            print("yay goal")
+            return 10
+        if (o_pgoal_dist < p_pgoal_dist):
+            if(p_pos[0] <= 10 if p_team.name == 'blue' else p_pos[0] >= 10):
+                return 4 - translate(p_pgoal_dist) + translate(0 if po_dist > 1.5 else po_dist/5)
+            else:
+                return 4 - translate(p_pgoal_dist)
+        #if has ball and opponent is behind player +7
+        elif (o_pgoal_dist >= p_pgoal_dist):
+            if(p_pos[0] <= 10 if p_team.name == 'blue' else p_pos[0] >= 10):
+                return 7 - translate(p_pgoal_dist) + translate(0 if po_dist > 2 else po_dist)
+            else:
+                return 7 - translate(p_pgoal_dist)
     #########################################
     
     #########################################
     #if opponent has ball and player is between goal and opponent
-    if (o_has_ball and (p_ogoal_dist < o_ogoal_dist)):
-        if(p_pos[1] < state.goal_top and p_pos[1] > state.goal_bottom):
-                if(p_pos[0] < state.blue_goal_pos[0] + 6 if p_team.name == 'blue' else state.red_goal_pos[0] - 6 and p_pos[0] > 0):  
-                    if(state.can_shoot_from(o_pos[0],o_pos[1],o_team)):
-                        return -3 - translate(po_dist)
-                    else:
-                        return -5 - translate(po_dist)
-        return -4 - translate(po_dist) - translate(p_ogoal_dist + 2) 
+    if(o_has_ball):
+        if (p_ogoal_dist < o_ogoal_dist):
+            if (state.check_kick(state.players[opponent_id])[3]!=None and o_ogoal_dist < 5.5):
+                print("INTERCEPTED")
+                return 7
+            return -4 - translate(po_dist) #- translate(p_ogoal_dist + 2) 
+        
+        #if opponent has ball and player is behind opponent
+        if (p_ogoal_dist >= o_ogoal_dist):
+            if (state.check_kick(state.players[opponent_id])[3]!=None and o_ogoal_dist < 5.5):
+                print("INTERCEPTED")
+                return 7
+            return -7 - translate(po_dist) #- translate(po_dist)
+        #########################################
     
-    #if opponent has ball and player is behind opponent
-    if (o_has_ball and (p_ogoal_dist >= o_ogoal_dist)):
-        return -7 - translate(p_ogoal_dist) #- translate(po_dist)
+    
+    
     #########################################
-    
-    
-    
-    #########################################
-    #if doesnt have ball and opponent doesnt have ball, but is closer 
-    if (not p_has_ball and not o_has_ball and (pb_dist > ob_dist)):
-        return 1 - translate(pb_dist) 
-    
-    #if doesnt have ball and opponent doesnt have ball, but is further 
-    if (not p_has_ball and not o_has_ball and (pb_dist < ob_dist)):
-        return -1 - translate(pb_dist)
-    
-    #if doesnt have ball and opponent doesnt have ball
-    if (not p_has_ball and not o_has_ball):
+    #if doesnt have ball and opponent doesnt have ball, but is closer
+    if(not p_has_ball and not o_has_ball):
+        if (pb_dist > ob_dist):
+            return 1 - translate(pb_dist) 
+        
+        #if doesnt have ball and opponent doesnt have ball, but is further 
+        if (pb_dist < ob_dist):
+            return -1 - translate(pb_dist)
+        
+        #if doesnt have ball and opponent doesnt have ball
         return 0 
     #########################################
     
