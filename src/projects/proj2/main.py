@@ -38,6 +38,7 @@ def run_game(args):
         args.ab_pruning,
         args.max_depth
     )
+    greedy_agent = agent.GreedAgent(evaluation_fn)
     if args.interactive:
         interactive_agent = gm.InteractiveAgent()
         if cli.ask_yn("Will you play as the first player?"):

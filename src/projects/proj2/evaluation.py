@@ -84,14 +84,12 @@ def soccer(state, player_id):
     if(o_has_ball):
         if (p_ogoal_dist < o_ogoal_dist):
             if (state.check_kick(state.players[opponent_id])[3]!=None and o_ogoal_dist < 5.5):
-                print("INTERCEPTED")
                 return 7
             return -4 - translate(po_dist) #- translate(p_ogoal_dist + 2) 
         
         #if opponent has ball and player is behind opponent
         if (p_ogoal_dist >= o_ogoal_dist):
             if (state.check_kick(state.players[opponent_id])[3]!=None and o_ogoal_dist < 5.5):
-                print("INTERCEPTED")
                 return 7
             return -7 - translate(po_dist) #- translate(po_dist)
         #########################################
