@@ -113,12 +113,7 @@ class Game:
         pygame.draw.rect(self.screen, (0, 0, 0), window)
         self.screen.blit(label, (window[0]+18, window[1]+7))
         pygame.display.flip()
-        count = 0
-        while count <10:
-            count+=1
-            return True
-        return False
-        '''
+        
         while True:
             pygame.event.clear()
             event = pygame.event.wait()
@@ -127,7 +122,7 @@ class Game:
                     return True
                 if event.key == pygame.K_n:
                     return False
-                '''
+                
 class GameType:
     """A helper class that initializes the game state. Used as a class
     since the game type might have parameters."""
